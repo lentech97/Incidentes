@@ -1,23 +1,21 @@
 const request = require('supertest');
-const Database = require('better-sqlite3');
-const { migrateDatabase } = require('../src/db/migrate');
+const { createTestDatabase } = require('./helpers/testDatabase');
 const { createApp } = require('../src/app');
 
 describe('frontend servido desde su carpeta', () => {
     let database;
     let app;
 
-    beforeAll(() => {
-        database = new Database(':memory:');
-        migrateDatabase(database);
+    beforeAll(async () => {
+        database = await createTestDatabase();
         app = createApp({
             database,
             jwtSecret: 'a-test-secret-that-is-long-enough-to-sign-jwt-tokens',
         });
     });
 
-    afterAll(() => {
-        database.close();
+    afterAll(async () => {
+        await database.end();
     });
 
     test('sirve la página principal y sus recursos estáticos', async () => {

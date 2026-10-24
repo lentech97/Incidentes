@@ -1,6 +1,5 @@
 const request = require('supertest');
-const Database = require('better-sqlite3');
-const { migrateDatabase } = require('../src/db/migrate');
+const { createTestDatabase } = require('./helpers/testDatabase');
 const { createApp } = require('../src/app');
 
 const jwtSecret = 'a-test-secret-that-is-long-enough-to-sign-jwt-tokens';
@@ -9,15 +8,14 @@ describe('ruta de salud', () => {
     let database;
     let app;
 
-    beforeAll(() => {
+    beforeAll(async () => {
         jest.spyOn(console, 'log').mockImplementation(() => {});
-        database = new Database(':memory:');
-        migrateDatabase(database);
+        database = await createTestDatabase();
         app = createApp({ database, jwtSecret });
     });
 
-    afterAll(() => {
-        database.close();
+    afterAll(async () => {
+        await database.end();
         console.log.mockRestore();
     });
 

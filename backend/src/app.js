@@ -46,9 +46,9 @@ function createApp({ database, jwtSecret, jwtExpiresIn = '1h', clientOrigin = 'h
         allowedHeaders: ['Content-Type', 'Authorization'],
     }));
     app.use(requestLogger);
-    app.get('/health', (req, res) => {
+    app.get('/health', async (req, res) => {
         try {
-            database.prepare('SELECT 1').get();
+            await database.query('SELECT 1');
             return res.status(200).json({
                 status: 'ok',
                 database: 'ok',

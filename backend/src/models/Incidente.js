@@ -1,4 +1,3 @@
-
 const INCIDENT_COLUMNS = `
     id,
     titulo,
@@ -6,101 +5,60 @@ const INCIDENT_COLUMNS = `
     tipo,
     prioridad,
     estado,
-    fecha_creacion AS fechaCreacion
+    fecha_creacion AS "fechaCreacion"
 `;
 
 function createIncidentModel(database) {
-    const selectAll = database.prepare(`
-        SELECT ${INCIDENT_COLUMNS}
-        FROM incidentes
-        WHERE (@estado IS NULL OR estado = @estado)
-          AND (@prioridad IS NULL OR prioridad = @prioridad)
-        ORDER BY id DESC
-    `);
-
-    const selectById = database.prepare(`
-        SELECT ${INCIDENT_COLUMNS}
-        FROM incidentes
-        WHERE id = ?
-    `);
-
-    const insert = database.prepare(`
-        INSERT INTO incidentes (
-            titulo,
-            descripcion,
-            tipo,
-            prioridad,
-            estado
-        )
-        VALUES (
-            @titulo,
-            @descripcion,
-            @tipo,
-            @prioridad,
-            @estado
-        )
-    `);
-
-    const update = database.prepare(`
-        UPDATE incidentes
-        SET
-            titulo = @titulo,
-            descripcion = @descripcion,
-            tipo = @tipo,
-            prioridad = @prioridad,
-            estado = @estado
-        WHERE id = @id
-    `);
-
-    const remove = database.prepare(`
-        DELETE FROM incidentes
-        WHERE id = ?
-    `);
-
-    function prepareFilters(filters = {}) {
-        return {
-            estado: filters.estado || null,
-            prioridad: filters.prioridad || null,
-        };
-    }
-
-    function prepareIncident(id, incident) {
-        return {
-            id,
-            titulo: incident.titulo,
-            descripcion: incident.descripcion,
-            tipo: incident.tipo,
-            prioridad: incident.prioridad,
-            estado: incident.estado,
-        };
-    }
-
     return {
-        list(filters = {}) {
-            return selectAll.all(prepareFilters(filters));
-        },
-
-        findById(id) {
-            return selectById.get(id);
-        },
-
-        create(incident) {
-            const result = insert.run(incident);
-            return selectById.get(result.lastInsertRowid);
-        },
-
-        update(id, incident) {
-            const result = update.run(
-                prepareIncident(id, incident)
+        async list(filters = {}) {
+            const conditions = [];
+            const values = [];
+            for (const field of ['estado', 'prioridad']) {
+                if (filters[field]) {
+                    values.push(filters[field]);
+                    conditions.push(`${field} = $${values.length}`);
+                }
+            }
+            const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+            const { rows } = await database.query(
+                `SELECT ${INCIDENT_COLUMNS} FROM incidentes ${where} ORDER BY id DESC`,
+                values,
             );
-
-            return result.changes
-                ? selectById.get(id)
-                : undefined;
+            return rows;
         },
 
-        delete(id) {
-            return remove.run(id).changes > 0;
+        async findById(id) {
+            const { rows } = await database.query(
+                `SELECT ${INCIDENT_COLUMNS} FROM incidentes WHERE id = $1`,
+                [id],
+            );
+            return rows[0];
+        },
+
+        async create(incident) {
+            const { rows } = await database.query(
+                `INSERT INTO incidentes (titulo, descripcion, tipo, prioridad, estado)
+                 VALUES ($1, $2, $3, $4, $5)
+                 RETURNING ${INCIDENT_COLUMNS}`,
+                [incident.titulo, incident.descripcion, incident.tipo, incident.prioridad, incident.estado],
+            );
+            return rows[0];
+        },
+
+        async update(id, incident) {
+            const { rows } = await database.query(
+                `UPDATE incidentes
+                 SET titulo = $1, descripcion = $2, tipo = $3, prioridad = $4, estado = $5
+                 WHERE id = $6
+                 RETURNING ${INCIDENT_COLUMNS}`,
+                [incident.titulo, incident.descripcion, incident.tipo, incident.prioridad, incident.estado, id],
+            );
+            return rows[0];
+        },
+
+        async delete(id) {
+            const result = await database.query('DELETE FROM incidentes WHERE id = $1', [id]);
+            return result.rowCount > 0;
         },
     };
 }

@@ -40,7 +40,7 @@ function validateConfiguration(environment) {
 async function start() {
     const port = validateConfiguration(process.env);
     const database = createDatabase();
-    migrateDatabase(database);
+    await migrateDatabase(database);
 
     const users = createUserModel(database);
     const initialUsers = [
@@ -48,7 +48,7 @@ async function start() {
         ['analista', process.env.ANALYST_PASSWORD, 'analista'],
     ];
     for (const [username, password, role] of initialUsers) {
-        users.createIfMissing(username, await bcrypt.hash(password, 12), role);
+        await users.createIfMissing(username, await bcrypt.hash(password, 12), role);
     }
 
     const app = createApp({
@@ -66,8 +66,8 @@ async function start() {
     });
 
     const shutdown = () => {
-        server.close(() => {
-            database.close();
+        server.close(async () => {
+            await database.end();
             process.exit(0);
         });
     };

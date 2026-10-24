@@ -1,8 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const request = require('supertest');
-const Database = require('better-sqlite3');
-const { migrateDatabase } = require('../src/db/migrate');
+const { createTestDatabase } = require('./helpers/testDatabase');
 const { createApp } = require('../src/app');
 const { createUserModel } = require('../src/models/Usuario');
 
@@ -23,18 +22,17 @@ describe('API de incidentes protegida', () => {
 
     beforeAll(async () => {
         jest.spyOn(console, 'log').mockImplementation(() => {});
-        database = new Database(':memory:');
-        migrateDatabase(database);
+        database = await createTestDatabase();
         const users = createUserModel(database);
-        users.createIfMissing('admin', await bcrypt.hash('admin-password', 4), 'admin');
-        users.createIfMissing('analista', await bcrypt.hash('analyst-password', 4), 'analista');
+        await users.createIfMissing('admin', await bcrypt.hash('admin-password', 4), 'admin');
+        await users.createIfMissing('analista', await bcrypt.hash('analyst-password', 4), 'analista');
         adminToken = jwt.sign({ sub: '1', role: 'admin', username: 'admin' }, jwtSecret, { algorithm: 'HS256', expiresIn: '1h' });
         analystToken = jwt.sign({ sub: '2', role: 'analista', username: 'analista' }, jwtSecret, { algorithm: 'HS256', expiresIn: '1h' });
         app = createApp({ database, jwtSecret, clientOrigin: 'http://localhost:3000' });
     });
 
-    afterAll(() => {
-        database.close();
+    afterAll(async () => {
+        await database.end();
         console.log.mockRestore();
     });
 

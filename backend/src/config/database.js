@@ -1,28 +1,28 @@
-const fs = require('fs');
-const path = require('path');
-const Database = require('better-sqlite3');
+const { Pool } = require('pg');
 
-function databasePathFromUrl(databaseUrl) {
-    if (!databaseUrl || !databaseUrl.startsWith('sqlite:')) {
-        throw new Error('DATABASE_URL debe usar el formato sqlite:./ruta/archivo.sqlite.');
+function validateDatabaseUrl(databaseUrl) {
+    if (!databaseUrl || !/^postgres(ql)?:\/\//.test(databaseUrl)) {
+        throw new Error('DATABASE_URL debe usar el formato postgresql://usuario:clave@host:5432/base.');
     }
+    return new URL(databaseUrl);
+}
 
-    const configuredPath = databaseUrl.slice('sqlite:'.length);
-    if (!configuredPath) {
-        throw new Error('DATABASE_URL debe incluir la ruta del archivo SQLite.');
-    }
-
-    return path.resolve(process.cwd(), configuredPath);
+function sslOptionsFor(url, environment = process.env) {
+    const isLocal = ['localhost', '127.0.0.1', '::1'].includes(url.hostname);
+    const forced = environment.DATABASE_SSL === 'true';
+    const disabled = environment.DATABASE_SSL === 'false';
+    // La URL externa de Render exige TLS; la interna (sin punto en el host) no lo necesita.
+    const needsTls = forced || (!disabled && !isLocal && url.hostname.includes('.'));
+    return needsTls ? { rejectUnauthorized: false } : false;
 }
 
 function createDatabase(databaseUrl = process.env.DATABASE_URL) {
-    const databasePath = databasePathFromUrl(databaseUrl);
-    fs.mkdirSync(path.dirname(databasePath), { recursive: true });
-
-    const database = new Database(databasePath);
-    database.pragma('foreign_keys = ON');
-    database.pragma('journal_mode = WAL');
-    return database;
+    const url = validateDatabaseUrl(databaseUrl);
+    return new Pool({
+        connectionString: databaseUrl,
+        ssl: sslOptionsFor(url),
+        max: 10,
+    });
 }
 
-module.exports = { createDatabase, databasePathFromUrl };
+module.exports = { createDatabase, sslOptionsFor, validateDatabaseUrl };

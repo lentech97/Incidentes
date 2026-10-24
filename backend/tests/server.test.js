@@ -13,7 +13,7 @@ const { start } = require('../src/server');
 const environment = {
     PORT: '3101',
     NODE_ENV: 'production',
-    DATABASE_URL: 'sqlite:./data/test.sqlite',
+    DATABASE_URL: 'postgresql://usuario:clave@localhost:5432/prueba',
     JWT_SECRET: 'a-randomized-secret-with-at-least-32-characters',
     JWT_EXPIRES_IN: '1h',
     CLIENT_ORIGIN: 'https://incidentes.example',
@@ -46,7 +46,7 @@ describe('arranque del servidor', () => {
 
     test('configura la base, usuarios, aplicación y cierre ordenado', async () => {
         const restoreEnvironment = setEnvironment(environment);
-        const database = { close: jest.fn() };
+        const database = { end: jest.fn().mockResolvedValue(undefined) };
         const users = { createIfMissing: jest.fn() };
         const server = { close: jest.fn((callback) => callback()) };
         const app = {
@@ -81,8 +81,9 @@ describe('arranque del servidor', () => {
             const shutdown = process.listeners('SIGTERM').find((listener) => !existingSigterm.includes(listener));
             expect(shutdown).toEqual(expect.any(Function));
             shutdown();
+            await new Promise((resolve) => setImmediate(resolve));
             expect(server.close).toHaveBeenCalled();
-            expect(database.close).toHaveBeenCalled();
+            expect(database.end).toHaveBeenCalled();
             expect(exit).toHaveBeenCalledWith(0);
         } finally {
             for (const listener of process.listeners('SIGINT')) {

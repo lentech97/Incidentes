@@ -5,7 +5,6 @@ module.exports = [
         ignores: [
             'node_modules/**',
             'coverage/**',
-            'backend/data/*.sqlite*',
             'reporte-cobertura.txt',
         ],
     },

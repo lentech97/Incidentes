@@ -48,17 +48,17 @@ test('acepta un incidente válido', () => {
 
 
 describe('filtros del servicio', () => {
-    test('reenvía estado y prioridad para filtrar conjuntamente', () => {
-        const model = { list: jest.fn().mockReturnValue([]) };
+    test('reenvía estado y prioridad para filtrar conjuntamente', async () => {
+        const model = { list: jest.fn().mockResolvedValue([]) };
         const service = createIncidentService(model);
 
-        expect(service.list({ estado: 'Pendiente', prioridad: 'Alta' })).toEqual({ data: [] });
+        expect(await service.list({ estado: 'Pendiente', prioridad: 'Alta' })).toEqual({ data: [] });
         expect(model.list).toHaveBeenCalledWith({ estado: 'Pendiente', prioridad: 'Alta' });
     });
 
-    test('rechaza filtros inválidos sin consultar el modelo', () => {
+    test('rechaza filtros inválidos sin consultar el modelo', async () => {
         const model = { list: jest.fn() };
-        const result = createIncidentService(model).list({ prioridad: 'Urgente' });
+        const result = await createIncidentService(model).list({ prioridad: 'Urgente' });
 
         expect(result.error.status).toBe(422);
         expect(model.list).not.toHaveBeenCalled();

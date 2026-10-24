@@ -5,7 +5,7 @@ const DUMMY_PASSWORD_HASH = bcrypt.hashSync('not-a-real-password', 10);
 function createAuthService(userModel, { jwtSecret, expiresIn }) {
     return {
         async login(username, password) {
-            const user = userModel.findByUsername(username);
+            const user = await userModel.findByUsername(username);
             const passwordMatches = await bcrypt.compare(password, user ? user.passwordHash : DUMMY_PASSWORD_HASH);
             if (!user || !passwordMatches) {
                 return undefined;

@@ -14,16 +14,17 @@ Aplicación web para registrar, consultar, actualizar y eliminar incidentes de c
 - **Autenticación** con JSON Web Tokens (HS256, con vencimiento) y contraseñas almacenadas con hash (bcrypt).
 - **Autorización por roles** verificada en el servidor: `admin` y `analista`. Solo `admin` puede eliminar.
 - **Validación** de entrada en el servidor y restricciones `CHECK` en la base de datos.
-- **Persistencia** en SQLite con migraciones versionadas.
+- **Persistencia** en PostgreSQL con migraciones versionadas.
 - **Seguridad HTTP:** Helmet (CSP), CORS restringido a un origen, límite de tamaño de cuerpo, HTTPS obligatorio en producción.
 - **Operación:** configuración por variables de entorno validada al iniciar, ruta de salud `GET /health` y logs estructurados con identificador de solicitud.
 - **Protección de login:** máximo de 10 intentos por IP cada 15 minutos.
-- **Calidad:** pruebas automatizadas (Jest + Supertest) y análisis estático (ESLint).
+- **Calidad:** pruebas automatizadas (Jest + Supertest contra PostgreSQL) y análisis estático (ESLint).
+- **CI/CD:** GitHub Actions ejecuta lint y pruebas con una base temporal y, solo si pasan, llama al Deploy Hook de Render.
 
 ## Arquitectura
 
 ```text
-Navegador ──HTTPS──▶ Express (Render) ──▶ SQLite
+Navegador ──HTTPS──▶ Express (Render) ──▶ PostgreSQL
                        │
                        ├─ routes ▶ controllers ▶ services ▶ models
                        ├─ middleware: logger, autenticación, errores
@@ -85,7 +86,8 @@ Abra `http://localhost:3000`. Al iniciar, el servidor aplica las migraciones y c
 |---|---|---|---|
 | `PORT` | No (3000) | Puerto de escucha. | `3000` |
 | `NODE_ENV` | No | `production` activa la exigencia de HTTPS. | `development` |
-| `DATABASE_URL` | Sí | Ruta del archivo SQLite con prefijo `sqlite:`. | `sqlite:./backend/data/incidentes.sqlite` |
+| `DATABASE_URL` | Sí | URL de conexión de PostgreSQL. En Render use la *Internal Database URL* en el servicio y la *External* en su computadora. | `postgresql://usuario:clave@localhost:5432/incidentes` |
+| `DATABASE_SSL` | No | `true` fuerza TLS; `false` lo desactiva. Por defecto se usa TLS solo con hosts externos. | `true` |
 | `JWT_SECRET` | Sí | Secreto de firma, **mínimo 32 caracteres** aleatorios. | _(generado)_ |
 | `JWT_EXPIRES_IN` | No (`1h`) | Duración del token. | `1h` |
 | `CLIENT_ORIGIN` | Sí | Origen permitido por CORS: solo `https://dominio`, sin ruta ni barra final. | `http://localhost:3000` |
@@ -132,8 +134,10 @@ curl -X POST http://localhost:3000/api/auth/login \
 
 ## Pruebas y calidad
 
+Las pruebas usan una base PostgreSQL real. Cree una base vacía (por ejemplo `incidentes_test`) y defina `DATABASE_URL` antes de ejecutarlas; si no la define, usan `postgresql://postgres:postgres@localhost:5432/incidentes_test`. **Las pruebas vacían las tablas**: nunca apunte `DATABASE_URL` a la base de producción.
+
 ```bash
-npm test                # pruebas
+npm test                # pruebas (requieren PostgreSQL; ver abajo)
 npm run test:coverage   # pruebas con informe de cobertura (carpeta coverage/)
 npm run lint            # análisis estático
 ```
@@ -152,9 +156,9 @@ El servicio se despliega en **Render** como servicio web Node.js (ver `render.ya
 
 Más detalles de TLS en [`HTTPS.md`](HTTPS.md).
 
-**Persistencia:** SQLite guarda los datos en un archivo. Si el hosting tiene disco efímero, los datos se pierden al reiniciar. Use un disco persistente y apunte `DATABASE_URL` a su ruta (por ejemplo `sqlite:/var/data/incidentes.sqlite`).
+**Persistencia:** los datos viven en PostgreSQL, separados del servidor web, y sobreviven a reinicios y despliegues. Las migraciones se aplican al iniciar. La base gratuita de Render vence a los 30 días de creada.
 
-**Plan de reversión:** cada despliegue corresponde a un commit o tag de Git. Para volver a una versión estable, use la función de rollback del proveedor o `git revert` y publique de nuevo. Revertir código no revierte datos: haga una copia del archivo de base de datos antes de aplicar migraciones nuevas.
+**Plan de reversión:** cada despliegue corresponde a un commit o tag de Git. Para volver a una versión estable, use la función de rollback del proveedor o `git revert` y publique de nuevo. Revertir código no revierte datos: haga una copia de la base (`pg_dump`) antes de aplicar migraciones nuevas.
 
 ## Monitoreo
 
@@ -172,7 +176,7 @@ Más detalles de TLS en [`HTTPS.md`](HTTPS.md).
 
 ## Limitaciones
 
-- SQLite en un solo servidor: sin alta disponibilidad ni respaldos automáticos.
+- Base PostgreSQL gratuita de Render: un solo nodo, sin alta disponibilidad y con vencimiento a los 30 días.
 - Sin registro de usuarios ni recuperación de contraseña; las cuentas iniciales se definen por variables de entorno.
 - Los tokens no se pueden revocar antes de su vencimiento.
 - Sin registro de auditoría de cambios por usuario.
@@ -189,3 +193,15 @@ Más detalles de TLS en [`HTTPS.md`](HTTPS.md).
 ## Licencia
 
 Proyecto académico. Defina aquí la licencia que corresponda (por ejemplo, ISC, como indica `package.json`).
+
+## CI/CD con GitHub Actions y Render
+
+El flujo está en `.github/workflows/ci-cd.yml`:
+
+1. En cada `push` o pull request a `main`, GitHub levanta una base PostgreSQL temporal, instala con `npm ci`, ejecuta `npm run lint` y `npm run test:coverage`.
+2. Solo si todo pasa y el evento es un `push` a `main`, el trabajo `despliegue` llama al Deploy Hook de Render.
+
+Configuración necesaria:
+
+- En Render, el servicio debe tener **Auto-Deploy en Off** y la variable `DATABASE_URL` con la *Internal Database URL* de la base.
+- En GitHub → Settings → Secrets and variables → Actions, cree el secreto `RENDER_DEPLOY_HOOK_URL` con la URL del Deploy Hook (Render → Settings → Deploy Hook).

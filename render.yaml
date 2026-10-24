@@ -5,12 +5,8 @@ services:
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /health
-    autoDeploy: true
-    # Habilite este disco persistente antes de desplegar SQLite en producción.
-    # disk:
-    #   name: datos
-    #   mountPath: /var/data
-    #   sizeGB: 1
+    # El despliegue lo ordena GitHub Actions (Deploy Hook) solo si las pruebas pasan.
+    autoDeploy: false
     envVars:
       - key: NODE_VERSION
         value: "22"
@@ -20,8 +16,9 @@ services:
         value: "1"
       - key: JWT_EXPIRES_IN
         value: 1h
+      # Internal Database URL de la base PostgreSQL de Render (misma región).
       - key: DATABASE_URL
-        value: sqlite:/var/data/incidentes.sqlite
+        sync: false
       - key: JWT_SECRET
         sync: false
       - key: ADMIN_PASSWORD
