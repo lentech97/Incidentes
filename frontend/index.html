@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberShield Monitor</title>
+    <meta name="description" content="Sistema demostrativo de gestión y monitoreo de incidentes de ciberseguridad.">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-label="Abrir menú de navegación">
+
+    <header id="inicio">
+        <div class="header-content">
+            <div class="brand">
+                <div class="logo" aria-hidden="true">CS</div>
+                <div>
+                    <p class="eyebrow">Centro de Operaciones de Seguridad</p>
+                    <h1>CyberShield Monitor</h1>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div class="header-status" aria-label="Estado del sistema">
+                    <span class="status-dot" aria-hidden="true"></span>
+                    Operación 24/7
+                </div>
+                <label for="menu-toggle" class="menu-icon" aria-label="Abrir menú">☰</label>
+            </div>
+        </div>
+    </header>
+
+    <nav aria-label="Menú principal">
+        <ul>
+            <li><a href="#inicio">Inicio</a></li>
+            <li><a href="#monitor">Monitoreo</a></li>
+            <li><a href="#incidentes">Incidentes</a></li>
+            <li><a href="#arquitectura">Frontend y backend</a></li>
+            <li><a href="#formulario">Formulario</a></li>
+            <li><a href="#contacto">Contacto</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section class="contenido" aria-label="Contenido principal">
+            <section class="card auth-card" aria-labelledby="auth-title">
+                <p class="tag">Acceso seguro</p>
+                <h3 id="auth-title">Iniciar sesión</h3>
+                <p>Inicie sesión para consultar y gestionar incidentes. La sesión se mantiene solo en memoria en este navegador.</p>
+                <div id="auth-message" class="form-message" role="status" aria-live="polite"></div>
+                <form id="login-form" class="login-form">
+                    <div class="field">
+                        <label for="username">Usuario</label>
+                        <input id="username" name="username" autocomplete="username" required>
+                    </div>
+                    <div class="field">
+                        <label for="password">Contraseña</label>
+                        <input id="password" name="password" type="password" autocomplete="current-password" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Ingresar</button>
+                </form>
+                <div id="session-panel" class="session-panel" hidden>
+                    <span id="session-user"></span>
+                    <button id="logout-button" class="btn-secondary" type="button">Cerrar sesión</button>
+                </div>
+            </section>
+
+            <article id="monitor" class="card feature">
+                <div class="card-text">
+                    <p class="tag">Monitoreo continuo</p>
+                    <h2>Visibilidad total del entorno digital</h2>
+                    <p>
+                        Nuestra plataforma centraliza logs, eventos y alertas para detectar actividades sospechosas,
+                        anomalías de red y comportamientos inusuales antes de que un incidente impacte la continuidad del negocio.
+                    </p>
+                    <ul>
+                        <li>Supervisión de endpoints, servidores y redes.</li>
+                        <li>Analítica de amenazas en tiempo real.</li>
+                        <li>Integración con SIEM, EDR y servicios cloud.</li>
+                    </ul>
+                </div>
+                <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=900&q=80" alt="Panel de supervisión de ciberseguridad con métricas de seguridad">
+            </article>
+
+            <article id="incidentes" class="card">
+                <div class="card-header">
+                    <p class="tag">Gestión de incidentes</p>
+                    <h3>Clasificación, priorización y trazabilidad</h3>
+                </div>
+                <p>
+                    Cada evento se valida, prioriza y registra según impacto, criticidad y tiempo de respuesta. Esto
+                    permite actuar con rapidez, mantener evidencia y reducir tiempos de resolución sin perder contexto operativo.
+                </p>
+                <img src="https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=900&q=80" alt="Equipo analizando incidentes de seguridad y alertas en una sala de operaciones">
+            </article>
+
+            <article id="respuesta" class="card">
+                <div class="card-header">
+                    <p class="tag">Respuesta y remediación</p>
+                    <h3>Acciones coordinadas para contener riesgos</h3>
+                </div>
+                <p>
+                    Los equipos de seguridad ejecutan aislamiento, análisis forense y remediación de forma coordinada para
+                    limitar el impacto y restaurar servicios críticos con la menor latencia posible.
+                </p>
+                <img src="https://images.unsplash.com/photo-1516321165247-4aa89a48be28?auto=format&fit=crop&w=900&q=80" alt="Analista revisando alertas y respondiendo ante una amenaza cibernética">
+            </article>
+
+            <section class="card" id="formulario" aria-labelledby="registro-titulo">
+                <p class="tag">Registro de incidentes</p>
+                <h3 id="registro-titulo">Registrar evento de seguridad</h3>
+                <p class="form-note">Los campos se validan en el servidor. El identificador y la fecha de creación se asignan al guardar.</p>
+
+                <div id="form-message" class="form-message" role="status" aria-live="polite" aria-atomic="true"></div>
+
+                <form id="incident-form" novalidate>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="titulo">Título del incidente</label>
+                            <input type="text" id="titulo" name="titulo" maxlength="120" required aria-describedby="form-message">
+                            <small class="error-message" data-error-for="titulo"></small>
+                        </div>
+
+                        <div class="field">
+                            <label for="tipo">Tipo de incidente</label>
+                            <select id="tipo" name="tipo" required aria-describedby="form-message">
+                                <option value="">Seleccione una opción</option>
+                                <option value="Phishing">Phishing</option>
+                                <option value="Malware">Malware</option>
+                                <option value="Acceso no autorizado">Acceso no autorizado</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                            <small class="error-message" data-error-for="tipo"></small>
+                        </div>
+
+                        <div class="field">
+                            <label for="prioridad">Nivel de prioridad</label>
+                            <select id="prioridad" name="prioridad" required aria-describedby="form-message">
+                                <option value="">Seleccione la severidad</option>
+                                <option value="Baja">Baja</option>
+                                <option value="Media">Media</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Crítica">Crítica</option>
+                            </select>
+                            <small class="error-message" data-error-for="prioridad"></small>
+                        </div>
+
+                        <div class="field field-full">
+                            <label for="descripcion">Descripción</label>
+                            <textarea id="descripcion" name="descripcion" rows="5" maxlength="2000" required aria-describedby="form-message"></textarea>
+                            <small class="error-message" data-error-for="descripcion"></small>
+                        </div>
+
+                        <div class="field">
+                            <label for="estado">Estado</label>
+                            <select id="estado" name="estado" required aria-describedby="form-message">
+                                <option value="">Seleccione un estado</option>
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="En análisis">En análisis</option>
+                                <option value="Resuelto">Resuelto</option>
+                            </select>
+                            <small class="error-message" data-error-for="estado"></small>
+                        </div>
+                    </div>
+
+                    <button id="save-incident" type="submit" class="btn-primary">Registrar incidente</button>
+                    <button id="cancel-edit" class="btn-secondary" type="button" hidden>Cancelar edición</button>
+                </form>
+            </section>
+
+            <section class="card" aria-labelledby="incidentes-titulo">
+                <p class="tag">Registros persistentes</p>
+                <h3 id="incidentes-titulo">Incidentes de seguridad</h3>
+                <div class="filter-row">
+                    <div class="field">
+                        <label for="filter-state">Filtrar por estado</label>
+                        <select id="filter-state">
+                            <option value="">Todos</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En análisis">En análisis</option>
+                            <option value="Resuelto">Resuelto</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="filter-priority">Filtrar por prioridad</label>
+                        <select id="filter-priority">
+                            <option value="">Todas</option>
+                            <option value="Baja">Baja</option>
+                            <option value="Media">Media</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Crítica">Crítica</option>
+                        </select>
+                    </div>
+                    <button id="load-incidents" class="btn-secondary" type="button">Cargar incidentes</button>
+                </div>
+                <div id="incident-message" class="form-message" role="status" aria-live="polite"></div>
+                <div id="incident-list" class="incident-list" aria-live="polite" aria-atomic="false"></div>
+            </section>
+
+            <section class="card incident-detail" aria-labelledby="detalle-titulo">
+                <p class="tag">Detalle</p>
+                <h3 id="detalle-titulo">Detalle del incidente</h3>
+                <div id="incident-detail" aria-live="polite" aria-atomic="true">Seleccione un incidente para ver sus detalles.</div>
+            </section>
+
+            <section id="arquitectura" class="card architecture-section" aria-labelledby="arquitectura-titulo">
+                <p class="tag">Arquitectura del proyecto</p>
+                <h3 id="arquitectura-titulo">Frontend y backend: responsabilidades separadas</h3>
+                <p>La interfaz estática se sirve desde Express y se comunica con la API REST mediante solicitudes Fetch.</p>
+
+                <div class="architecture-grid">
+                    <article class="architecture-layer frontend-layer">
+                        <div class="architecture-heading">
+                            <span class="architecture-index" aria-hidden="true">01</span>
+                            <div>
+                                <p class="tag">Cliente · <code>public/</code></p>
+                                <h4>Frontend</h4>
+                            </div>
+                        </div>
+                        <p class="architecture-stack">HTML5 · CSS · JavaScript · Fetch API</p>
+                        <ul>
+                            <li>Presenta el panel, los formularios y la sesión del usuario.</li>
+                            <li>Consulta, registra, edita y filtra incidentes desde la API.</li>
+                            <li>Muestra detalles, métricas, errores y controles según el rol.</li>
+                            <li>Mantiene el token JWT solo en memoria del navegador.</li>
+                        </ul>
+                        <p class="architecture-files">Archivos principales: <code>index.html</code>, <code>css/styles.css</code> y <code>js/app.js</code>.</p>
+                    </article>
+
+                    <article class="architecture-layer backend-layer">
+                        <div class="architecture-heading">
+                            <span class="architecture-index" aria-hidden="true">02</span>
+                            <div>
+                                <p class="tag">Servidor · <code>src/</code></p>
+                                <h4>Backend</h4>
+                            </div>
+                        </div>
+                        <p class="architecture-stack">Node.js · Express · API REST · SQLite</p>
+                        <ul>
+                            <li>Expone endpoints de autenticación y gestión de incidentes.</li>
+                            <li>Valida datos y aplica autenticación JWT y permisos por rol.</li>
+                            <li>Guarda usuarios e incidentes en SQLite con migraciones.</li>
+                            <li>Centraliza seguridad, registro de solicitudes y respuestas de error.</li>
+                        </ul>
+                        <p class="architecture-files">Capas: <code>routes/</code>, <code>controllers/</code>, <code>services/</code>, <code>models/</code> y <code>middleware/</code>.</p>
+                    </article>
+                </div>
+
+                <div class="architecture-flow" aria-label="Flujo de comunicación entre frontend y backend">
+                    <span>Navegador</span>
+                    <span class="flow-arrow" aria-hidden="true">→</span>
+                    <span>Fetch + JWT</span>
+                    <span class="flow-arrow" aria-hidden="true">→</span>
+                    <span>API Express</span>
+                    <span class="flow-arrow" aria-hidden="true">→</span>
+                    <span>SQLite</span>
+                </div>
+            </section>
+
+            <section class="card audit-table-section" aria-labelledby="auditoria-titulo">
+                <p class="tag">Auditoría</p>
+                <h3 id="auditoria-titulo">Resumen de cumplimiento</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Categoría</th>
+                                <th>Estado</th>
+                                <th>Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>API REST</td><td>Implementado</td><td>Rutas protegidas de consulta, creación, actualización y eliminación.</td></tr>
+                            <tr><td>Persistencia</td><td>Implementado</td><td>SQLite con migración versionada y filtros indexados.</td></tr>
+                            <tr><td>Autenticación</td><td>Implementado</td><td>JWT firmado y contraseñas con bcrypt.</td></tr>
+                            <tr><td>Autorización</td><td>Implementado</td><td>El rol analista no puede eliminar incidentes.</td></tr>
+                            <tr><td>Validación</td><td>Implementado</td><td>Validación de servidor y restricciones en la base de datos.</td></tr>
+                            <tr><td>Interfaz</td><td>Implementado</td><td>Fetch, filtros, estados vacíos, errores y acciones según rol.</td></tr>
+                            <tr><td>Pruebas y lint</td><td>Verificar localmente</td><td>Ejecutar npm test y npm run lint antes del despliegue.</td></tr>
+                            <tr><td>HTTPS de producción</td><td>Configurar despliegue</td><td>Terminar TLS y redirigir HTTP en el proxy inverso.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+
+        <aside aria-label="Panel lateral">
+            <div class="panel">
+                <h3>Resumen operativo</h3>
+                <div class="metric-grid">
+                    <div class="metric">
+                        <strong id="metric-total">—</strong>
+                        <span>Resultados visibles</span>
+                    </div>
+                    <div class="metric">
+                        <strong id="metric-pending">—</strong>
+                        <span>Pendientes visibles</span>
+                    </div>
+                    <div class="metric">
+                        <strong id="metric-analysis">—</strong>
+                        <span>En análisis visibles</span>
+                    </div>
+                    <div class="metric">
+                        <strong id="metric-critical">—</strong>
+                        <span>Críticos visibles</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>Indicadores clave</h3>
+                <ul class="indicator-list">
+                    <li><span class="dot red" aria-hidden="true"></span> Phishing bloqueado</li>
+                    <li><span class="dot amber" aria-hidden="true"></span> Malware en endpoint</li>
+                    <li><span class="dot green" aria-hidden="true"></span> Red segmentada</li>
+                </ul>
+            </div>
+
+            <div class="panel panel-image">
+                <img src="https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=900&q=80" alt="Equipo de seguridad trabajando en un centro de operaciones con múltiples pantallas de monitoreo">
+            </div>
+        </aside>
+    </main>
+
+    <footer id="contacto">
+        <div>
+            <h4>CyberShield Monitor</h4>
+            <p>Protección proactiva para infraestructuras críticas.</p>
+        </div>
+        <div class="footer-links">
+            <a href="#inicio">Inicio</a>
+            <a href="#monitor">Monitoreo</a>
+            <a href="#arquitectura">Frontend y backend</a>
+            <a href="#formulario">Formulario</a>
+            <a href="#contacto">Contacto</a>
+        </div>
+    </footer>
+    <script src="/js/app.js" defer></script>
+</body>
+</html>

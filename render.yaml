@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: incidentes-seguros
+    runtime: node
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    # Habilite este disco persistente antes de desplegar SQLite en producción.
+    # disk:
+    #   name: datos
+    #   mountPath: /var/data
+    #   sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "1"
+      - key: JWT_EXPIRES_IN
+        value: 1h
+      - key: DATABASE_URL
+        value: sqlite:/var/data/incidentes.sqlite
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ANALYST_PASSWORD
+        sync: false
+      - key: CLIENT_ORIGIN
+        sync: false

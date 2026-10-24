@@ -1,0 +1,17 @@
+Verificación local — 2026-10-23
+
+Comandos:
+- npm run lint: correcto
+- npm run test:coverage: correcto
+
+Pruebas:
+- Suites: 9 aprobadas de 9
+- Pruebas: 37 aprobadas de 37
+
+Cobertura total:
+- Instrucciones: 88.95 %
+- Ramas: 77.22 %
+- Funciones: 95.00 %
+- Líneas: 88.92 %
+
+El informe completo HTML se genera en coverage/lcov-report/index.html y no se incluye en Git.
